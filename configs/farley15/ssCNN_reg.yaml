@@ -3,7 +3,7 @@ model:
   output_dim: 1
   strand: "ss"
   task: "regression"
-  loss_fxn: "mse"
+  loss_fxn: "poisson"
   aggr: None
   conv_kwargs:
     channels: [4, 32, 64]

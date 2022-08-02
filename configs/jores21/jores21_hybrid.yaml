@@ -1,0 +1,23 @@
+model:
+  input_len: 170
+  output_dim: 1
+  strand: "ss"
+  task: "regression"
+  loss_fxn: "mse"
+  aggr: None
+  conv_kwargs:
+    channels: [4, 32]
+    conv_kernels: [13]
+    activation: "relu"
+    pool_kernels: [2]
+    omit_final_pool: False
+    dropout_rates: 0.3
+    batchnorm: True
+  rnn_kwargs:
+    output_dim: 32
+    batch_first: True
+  fc_kwargs:
+    hidden_dims: [16]
+    activation: "relu"
+    dropout_rate: 0.4
+    batchnorm: True
