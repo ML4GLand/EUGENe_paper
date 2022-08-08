@@ -5,6 +5,8 @@ model:
   task: "regression"
   loss_fxn: "poisson"
   aggr: None
+  scheduler: "reduce_lr_on_plateau"
+  scheduler_patience: 2
   conv_kwargs:
     channels: [4, 32, 64]
     conv_kernels: [15, 5]
