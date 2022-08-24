@@ -1,0 +1,17 @@
+model:
+  input_len: 170
+  output_dim: 1
+  strand: "ss"
+  task: "regression"
+  loss_fxn: "mse"
+  aggr: None
+  layers: 3
+  filters: 256
+  kernel_size: 13
+  stride: 1
+  hidden_dim: 64
+  dropout: 0.3
+  lr: 0.001
+  optimizer: adam
+  scheduler: reduce_lr_on_plateau
+  scheduler_patience: 2
