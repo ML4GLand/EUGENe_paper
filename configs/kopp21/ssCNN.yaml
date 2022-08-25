@@ -15,4 +15,3 @@ model:
     dropout_rates: 0.2
     batchnorm: True
     omit_final_pool: True
-
