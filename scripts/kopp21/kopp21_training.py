@@ -37,10 +37,9 @@ eu.settings.verbosity = logging.ERROR
 
 
 sdata = eu.dl.read_h5sd(filename=os.path.join(eu.settings.dataset_dir, "jund_train_processed.h5sd"))
-# Train 5 models with 5 different random initializations
-model_types = ["FCN", "CNN", "RNN", "Hybrid", "Kopp21CNN"]
-model_names = ["dsFCN", "dsCNN", "dsRNN", "dsHybrid", "Kopp21CNN"]
-trials = 5
+model_types = ["Kopp21CNN", "FCN", "CNN", "RNN", "Hybrid"]
+model_names = ["Kopp21CNN", "dsFCN", "dsCNN", "dsRNN", "dsHybrid"]
+trials = 1
 for model_name, model_type in zip(model_names, model_types):
     for trial in range(1, trials+1):
         print(f"{model_name} trial {trial}")
@@ -64,7 +63,7 @@ for model_name, model_type in zip(model_names, model_types):
             gpus=1, 
             target="target",
             train_key="train_val",
-            epochs=30,
+            epochs=1,
             early_stopping_metric="val_loss",
             early_stopping_patience=5,
             transform_kwargs=t_kwargs,
@@ -75,6 +74,7 @@ for model_name, model_type in zip(model_names, model_types):
             version=f"trial_{trial}",
             verbosity=logging.ERROR
         )
+        
         # Get predictions on the training data
         eu.settings.dl_num_workers = 0
         eu.predict.train_val_predictions(
@@ -87,5 +87,6 @@ for model_name, model_type in zip(model_names, model_types):
             version=f"trial_{trial}",
             prefix=f"{model_name}_trial_{trial}_"
         )
-        del model 
+        del model
+        
 sdata.write_h5sd(os.path.join(eu.settings.output_dir, "train_predictions.h5sd"))
