@@ -19,7 +19,7 @@ eu.settings.logging_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/logs
 eu.settings.config_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/configs/ray13"
 figure_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/figures/ray13"
 eu.settings.verbosity = logging.ERROR
-number_kmers=10
+number_kmers=100
 
 # Load the test data
 sdata_test = eu.dl.read_h5sd(os.path.join(eu.settings.dataset_dir, "norm_setB_processed_ST.h5sd"))
@@ -39,7 +39,6 @@ sdata_training = eu.dl.read_h5sd(os.path.join(eu.settings.dataset_dir, eu.settin
 target_mask_MT = sdata_training.seqs_annot.columns.str.contains("RNCMPT")
 target_cols_MT = sdata_training.seqs_annot.columns[target_mask_MT]
 del sdata_training
-len(target_cols_MT)
 
 # Get predictions on the test data from all multi task models
 print("Testing DeepBind MultiTask model on")
@@ -58,25 +57,27 @@ eu.predict.predictions(
 )
 del model
 
-# Get evaluation metrics for all single task models and format for plotting
-pearson_MT_df, spearman_MT_df = eu.predict.summarize_rbps_apply(sdata_test, b_presence_absence, target_cols_MT[:7], use_calc_auc=True, verbose=False, n_kmers=number_kmers, preds_suffix="_predictions_MT")
-pearson_MT_long = pearson_MT_df.reset_index().melt(id_vars="index", value_name="Pearson", var_name="Metric").rename({"index":"RBP"}, axis=1)
-spearman_MT_long = spearman_MT_df.reset_index().melt(id_vars="index", value_name="Spearman", var_name="Metric").rename({"index":"RBP"}, axis=1)
-pearson_MT_long["Model"] = "MultiTask"
-spearman_MT_long["Model"] = "MultiTask"
-pearson_MT_long.to_csv(os.path.join(eu.settings.output_dir, "pearson_performance_MT.tsv"), index=False, sep="\t")
-spearman_MT_long.to_csv(os.path.join(eu.settings.output_dir, "spearman_performance_MT.tsv"), index=False, sep="\t")
-
-# Plot just the multi task model eval
-fig, ax = plt.subplots(1, 2, figsize=(8, 4))
-sns.boxplot(data=pearson_MT_long, x="Metric", y="Pearson", color="blue", ax=ax[0])
-sns.boxplot(data=spearman_MT_long, x="Metric", y="Spearman", color="blue", ax=ax[1])
-plt.tight_layout()
-plt.savefig(os.path.join(figure_dir, "correlation_boxplots_MT.pdf"))
-
 ################
 # Saving results
 ################
 
 # Save the sdata with the predictions for single task, and multitask models
 sdata_test.write_h5sd(os.path.join(eu.settings.output_dir, "norm_test_predictions_MT.h5sd"))
+
+# Get evaluation metrics for all single task models and format for plotting
+pearson_MT_df, spearman_MT_df = eu.predict.rnacomplete_metrics_sdata_table(sdata_test, b_presence_absence, target_cols_MT, verbose=False, swifter=True, num_kmers=number_kmers, preds_suffix="_predictions_MT")
+pearson_MT_long = pearson_MT_df.reset_index().melt(id_vars="index", value_name="Pearson", var_name="Metric").rename({"index":"RBP"}, axis=1)
+spearman_MT_long = spearman_MT_df.reset_index().melt(id_vars="index", value_name="Spearman", var_name="Metric").rename({"index":"RBP"}, axis=1)
+pearson_MT_long["Model"] = "MultiTask"
+spearman_MT_long["Model"] = "MultiTask"
+pearson_MT_long.to_csv(os.path.join(eu.settings.output_dir, f"pearson_performance_{number_kmers}kmers_MT.tsv"), index=False, sep="\t")
+spearman_MT_long.to_csv(os.path.join(eu.settings.output_dir, f"spearman_performance_{number_kmers}kmers_MT.tsv"), index=False, sep="\t")
+
+# Plot just the multi task model eval
+fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+sns.boxplot(data=pearson_MT_long, x="Metric", y="Pearson", color="blue", ax=ax[0])
+sns.boxplot(data=spearman_MT_long, x="Metric", y="Spearman", color="blue", ax=ax[1])
+plt.tight_layout()
+plt.savefig(os.path.join(figure_dir, f"correlation_boxplots_{number_kmers}kmers_MT.pdf"))
+
+

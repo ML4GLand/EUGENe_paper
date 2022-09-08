@@ -19,7 +19,7 @@ eu.settings.logging_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/logs
 eu.settings.config_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/configs/ray13"
 figure_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/figures/ray13"
 eu.settings.verbosity = logging.ERROR
-number_kmers=10
+number_kmers=100
 
 # Load the test data
 sdata_test = eu.dl.read_h5sd(os.path.join(eu.settings.dataset_dir, "norm_setB_processed_ST.h5sd"))
@@ -36,7 +36,7 @@ setB_observed = sdata_test.seqs_annot[target_cols]
 
 # Get predictions on the test data from all single task models
 trained_model_cols = []
-for i, target_col in enumerate(target_cols[:7]):
+for i, target_col in enumerate(target_cols):
     print(f"Testing DeepBind SingleTask model on {target_col}")
     try:
         model_file = glob.glob(os.path.join(eu.settings.logging_dir, "DeepBind_ST", target_col, "checkpoints", "*"))[0]
@@ -45,7 +45,8 @@ for i, target_col in enumerate(target_cols[:7]):
     except:
         print(f"No model trained for {target_col}")
         continue
-    eu.settings.dl_num_workers = 0
+    eu.settings.dl_num_workers = 4
+    eu.settings.batch_size = 5096
     eu.predict.predictions(
         model,
         sdata=sdata_test, 
@@ -57,25 +58,26 @@ for i, target_col in enumerate(target_cols[:7]):
     )
     del model
     
-# Get evaluation metrics for all single task models and format for plotting
-pearson_ST_df, spearman_ST_df = eu.predict.summarize_rbps_apply(sdata_test, b_presence_absence, trained_model_cols[:7], use_calc_auc=True, verbose=False, n_kmers=number_kmers, preds_suffix="_predictions_ST")
-pearson_ST_long = pearson_ST_df.reset_index().melt(id_vars="index", value_name="Pearson", var_name="Metric").rename({"index":"RBP"}, axis=1)
-spearman_ST_long = spearman_ST_df.reset_index().melt(id_vars="index", value_name="Spearman", var_name="Metric").rename({"index":"RBP"}, axis=1)
-pearson_ST_long["Model"] = "SingleTask"
-spearman_ST_long["Model"] = "SingleTask"
-pearson_ST_long.to_csv(os.path.join(eu.settings.output_dir, "pearson_performance_ST.tsv"), index=False, sep="\t")
-spearman_ST_long.to_csv(os.path.join(eu.settings.output_dir, "spearman_performance_ST.tsv"), index=False, sep="\t")
-
-# Plot just the single task model eval
-fig, ax = plt.subplots(1, 2, figsize=(8, 4))
-sns.boxplot(data=pearson_ST_long, x="Metric", y="Pearson", color="red", ax=ax[0])
-sns.boxplot(data=spearman_ST_long, x="Metric", y="Spearman", color="red", ax=ax[1])
-plt.tight_layout()
-plt.savefig(os.path.join(figure_dir, "correlation_boxplots_ST.pdf"))
-
 ################
 # Saving results
 ################
 
 # Save the sdata with the predictions for single task, and multitask models
 sdata_test.write_h5sd(os.path.join(eu.settings.output_dir, "norm_test_predictions_ST.h5sd"))
+
+# Get evaluation metrics for all single task models and format for plotting
+pearson_ST_df, spearman_ST_df = eu.predict.rnacomplete_metrics_sdata_table(sdata_test, b_presence_absence, trained_model_cols, verbose=False, num_kmers=number_kmers, preds_suffix="_predictions_ST")
+pearson_ST_long = pearson_ST_df.reset_index().melt(id_vars="index", value_name="Pearson", var_name="Metric").rename({"index":"RBP"}, axis=1)
+spearman_ST_long = spearman_ST_df.reset_index().melt(id_vars="index", value_name="Spearman", var_name="Metric").rename({"index":"RBP"}, axis=1)
+pearson_ST_long["Model"] = "SingleTask"
+spearman_ST_long["Model"] = "SingleTask"
+pearson_ST_long.to_csv(os.path.join(eu.settings.output_dir, f"pearson_performance_{number_kmers}kmers_ST.tsv"), index=False, sep="\t")
+spearman_ST_long.to_csv(os.path.join(eu.settings.output_dir, f"spearman_performance_{number_kmers}kmers_ST.tsv"), index=False, sep="\t")
+
+# Plot just the single task model eval
+fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+sns.boxplot(data=pearson_ST_long, x="Metric", y="Pearson", color="red", ax=ax[0])
+sns.boxplot(data=spearman_ST_long, x="Metric", y="Spearman", color="red", ax=ax[1])
+plt.tight_layout()
+plt.savefig(os.path.join(figure_dir, f"correlation_boxplots_{number_kmers}kmers_ST.pdf"))
+

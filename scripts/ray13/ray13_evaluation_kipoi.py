@@ -19,7 +19,7 @@ eu.settings.logging_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/logs
 eu.settings.config_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/configs/ray13"
 figure_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/figures/ray13"
 eu.settings.verbosity = logging.ERROR
-number_kmers=None
+number_kmers=100
 
 # Load the test data
 sdata_test = eu.dl.read_h5sd(os.path.join(eu.settings.dataset_dir, "norm_setB_processed_ST.h5sd"))
@@ -59,21 +59,25 @@ for i, (protein_id , motif_id) in tqdm(enumerate(zip(ids_w_target_cols, target_c
     except:
         print("Failed to load model")
 
+################
+# Saving results
+################
+                
+# Save the sdata with kipoi predictions
+sdata_test.write_h5sd(os.path.join(eu.settings.output_dir, "norm_test_predictions_kipoi.h5sd"))
+
 # Evaluate the predictions using the RNAcompete metrics
-pearson_kipoi_df, spearman_kipoi_df = eu.predict.summarize_rbps_apply(sdata_test, b_presence_absence, target_cols_w_model, use_calc_auc=True, verbose=False, n_kmers=number_kmers, preds_suffix="_predictions_kipoi")
+pearson_kipoi_df, spearman_kipoi_df = eu.predict.rnacomplete_metrics_sdata_table(sdata_test, b_presence_absence, target_cols_w_model, verbose=False, num_kmers=number_kmers, preds_suffix="_predictions_kipoi")
 pearson_kipoi_long = pearson_kipoi_df.reset_index().melt(id_vars="index", value_name="Pearson", var_name="Metric").rename({"index":"RBP"}, axis=1)
 spearman_kipoi_long = spearman_kipoi_df.reset_index().melt(id_vars="index", value_name="Spearman", var_name="Metric").rename({"index":"RBP"}, axis=1)
 pearson_kipoi_long["Model"] = "Kipoi"
 spearman_kipoi_long["Model"] = "Kipoi"
-pearson_kipoi_long.to_csv(os.path.join(eu.settings.output_dir, "pearson_performance_kipoi.tsv"), index=False, sep="\t")
-spearman_kipoi_long.to_csv(os.path.join(eu.settings.output_dir, "spearman_performance_kipoi.tsv"), index=False, sep="\t")
+pearson_kipoi_long.to_csv(os.path.join(eu.settings.output_dir, f"pearson_performance_{number_kmers}kmers_kipoi.tsv"), index=False, sep="\t")
+spearman_kipoi_long.to_csv(os.path.join(eu.settings.output_dir, f"spearman_performance_{number_kmers}kmers_kipoi.tsv"), index=False, sep="\t")
 
 # Plot just the kipoi results as boxplots
 fig, ax = plt.subplots(1, 2, figsize=(8, 4))
 sns.boxplot(data=pearson_kipoi_long, x="Metric", y="Pearson", color="orange", ax=ax[0])
 sns.boxplot(data=spearman_kipoi_long, x="Metric", y="Spearman", color="orange", ax=ax[1])
 plt.tight_layout()
-plt.savefig(os.path.join(figure_dir, "correlation_boxplots_kipoi.pdf"))
-        
-# Save the sdata with kipoi predictions
-sdata_test.write_h5sd(os.path.join(eu.settings.output_dir, "norm_test_predictions_kipoi.h5sd"))
+plt.savefig(os.path.join(figure_dir, f"correlation_boxplots_{number_kmers}kmers_kipoi.pdf"))
