@@ -1,8 +1,5 @@
 import os
 import logging
-import torch
-import numpy as np
-import pandas as pd
 import eugene as eu
 
 # Set-up directories
@@ -58,6 +55,7 @@ def prep_new_model(
     # Return the model
     return model 
 
+"""
 # Train 5 models with 5 different random initializations
 model_types = ["CNN", "Hybrid", "Jores21CNN"]
 model_names = ["ssCNN", "ssHybrid", "Jores21CNN"]
@@ -108,6 +106,7 @@ for model_name, model_type in zip(model_names, model_types):
         
 # Save training predictions        
 sdata_leaf.write_h5sd(os.path.join(eu.settings.output_dir, "leaf_train_predictions.h5sd"))
+"""
 
 # Train 5 models with 5 different random initializations
 model_types = ["CNN", "Hybrid", "Jores21CNN"]
@@ -144,7 +143,7 @@ for model_name, model_type in zip(model_names, model_types):
         eu.evaluate.train_val_predictions(
             proto_model,
             sdata=sdata_proto, 
-            target="enrichment",
+            target_keys="enrichment",
             train_key="train_val",
             batch_size=128,
             num_workers=0,
@@ -195,7 +194,7 @@ for model_name, model_type in zip(model_names, model_types):
         eu.evaluate.train_val_predictions(
             combined_model,
             sdata=sdata_combined, 
-            target="enrichment",
+            target_keys="enrichment",
             train_key="train_val",
             batch_size=128,
             num_workers=0,
