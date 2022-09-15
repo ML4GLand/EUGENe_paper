@@ -10,16 +10,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm.auto import tqdm
 
+# For changable illustrator text
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
 
+# Set-up output directories
 eu.settings.dataset_dir = "/cellar/users/aklie/data/eugene/ray13"
 eu.settings.output_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/output/ray13"
 eu.settings.logging_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/logs/ray13"
 eu.settings.config_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/configs/ray13"
-figure_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/figures/ray13"
-eu.settings.verbosity = logging.ERROR
-number_kmers=100
+eu.settings.figure_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/figures/ray13"
+number_kmers=1000
 
 # Load the test data
 sdata_test = eu.dl.read_h5sd(os.path.join(eu.settings.dataset_dir, "norm_setB_processed_ST.h5sd"))
@@ -50,8 +51,8 @@ from scipy.stats import pearsonr, spearmanr
 pearson_setA_long = pd.DataFrame()
 spearman_setA_long = pd.DataFrame()
 for i, task in tqdm(enumerate(target_cols), desc="Calculating metrics on each task", total=len(target_cols)):
-    a_zscores, a_aucs, a_escores  = eu.predict.rnacomplete_metrics(a_presence_absence, setA_observed[task].values, verbose=False)
-    b_zscores, b_aucs, b_escores = eu.predict.rnacomplete_metrics(b_presence_absence, setB_observed[task].values, verbose=False)
+    a_zscores, a_aucs, a_escores  = eu.evaluate.rnacomplete_metrics(a_presence_absence, setA_observed[task].values, verbose=False)
+    b_zscores, b_aucs, b_escores = eu.evaluate.rnacomplete_metrics(b_presence_absence, setB_observed[task].values, verbose=False)
     try:
         zscore_nan_mask = np.isnan(a_zscores) | np.isnan(b_zscores)
         a_zscores = a_zscores[~zscore_nan_mask]
@@ -81,11 +82,11 @@ for i, task in tqdm(enumerate(target_cols), desc="Calculating metrics on each ta
 pearson_setA_long["Model"] = "SetA"
 pearson_setA_long["Model"] = "SetA"
 pearson_setA_long.to_csv(os.path.join(eu.settings.output_dir, f"pearson_performance_{number_kmers}kmers_setA.tsv"), index=False, sep="\t")
-pearson_setA_long.to_csv(os.path.join(eu.settings.output_dir, f"spearman_performance_{number_kmers}kmers_setA.tsv"), index=False, sep="\t")
+spearman_setA_long.to_csv(os.path.join(eu.settings.output_dir, f"spearman_performance_{number_kmers}kmers_setA.tsv"), index=False, sep="\t")
 
 # Plot just the SetA results 
 fig, ax = plt.subplots(1, 2, figsize=(8, 4))
 sns.boxplot(data=pearson_setA_long, x="Metric", y="Pearson", color="green", ax=ax[0])
 sns.boxplot(data=spearman_setA_long, x="Metric", y="Spearman", color="green", ax=ax[1])
 plt.tight_layout()
-plt.savefig(os.path.join(figure_dir, f"correlation_boxplots_{number_kmers}kmers_setA.pdf"))
+plt.savefig(os.path.join(eu.settings.figure_dir, f"correlation_boxplots_{number_kmers}kmers_setA.pdf"))

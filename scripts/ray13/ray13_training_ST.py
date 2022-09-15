@@ -6,20 +6,20 @@ import pandas as pd
 import eugene as eu
 from pytorch_lightning import seed_everything
 
+# Set-up logging and other dirs
 eu.settings.dataset_dir = "/cellar/users/aklie/data/eugene/ray13"
 eu.settings.output_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/output/ray13"
 eu.settings.logging_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/logs/ray13"
 eu.settings.config_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/configs/ray13"
-eu.settings.verbosity = logging.ERROR
 
 # Load in the training SetA processed data for single task and multitask models
-sdata_training_ST = eu.dl.read_h5sd(os.path.join(eu.settings.dataset_dir, eu.settings.dataset_dir, "norm_setA_processed.h5sd"))
+sdata_training_ST = eu.dl.read_h5sd(os.path.join(eu.settings.dataset_dir, eu.settings.dataset_dir, "norm_setA_processed_ST.h5sd"))
 
 # Grab the prediction columns for single task and multitask
 target_mask_ST = sdata_training_ST.seqs_annot.columns.str.contains("RNCMPT")
 target_cols_ST = sdata_training_ST.seqs_annot.columns[target_mask_ST]
 
-# Instantiation function
+# Instantiation and init function
 def prep_new_model(
     seed,
     conv_dropout = 0,
@@ -43,7 +43,7 @@ def prep_new_model(
     seed_everything(seed)
     
     # Initialize the model prior to conv filter initialization
-    eu.models.base.init_weights(model)
+    eu.models.init_weights(model)
 
     # Return the model
     return model 
@@ -61,7 +61,7 @@ for i, target_col in enumerate(target_cols_ST):
             model=model, 
             sdata=sdata_training_ST, 
             gpus=1, 
-            target=target_col,
+            target_keys=target_col,
             train_key="train_val",
             epochs=25,
             early_stopping_metric="val_loss",
@@ -75,12 +75,13 @@ for i, target_col in enumerate(target_cols_ST):
         )
 
         # Get predictions on the training data
-        eu.settings.dl_num_workers = 0
-        eu.predict.train_val_predictions(
+        eu.evaluate.train_val_predictions(
             model,
             sdata=sdata_training_ST, 
-            target=target_col,
+            target_keys=target_col,
             train_key="train_val",
+            batch_size=1024,
+            num_workers=0,
             name="DeepBind_ST",
             suffix="_ST",
             version=target_col
@@ -88,6 +89,8 @@ for i, target_col in enumerate(target_cols_ST):
     except:
         print(f"Training model on {target_col} failed")
         
+    # Make room for the next model!
     del model 
     
+# Save all the predictions in single sdata
 sdata_training_ST.write_h5sd(os.path.join(eu.settings.output_dir, "DeepBind_ST", "norm_training_predictions_ST.h5sd"))
