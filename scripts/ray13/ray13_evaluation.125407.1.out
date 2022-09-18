@@ -351,3 +351,6 @@ Using downloaded and verified file: /cellar/users/aklie/.kipoi/models/DeepBind/d
 Using downloaded and verified file: /cellar/users/aklie/.kipoi/models/DeepBind/downloaded/model_files/Homo_sapiens/RBP/D00274.001_RNAcompete_PTBP1/weights/3fed4418137ea50b90ae1ddbd41581c6
 Predicting for protein:  EIF2S1  motif:  RNCMPT00273
 No model found for protein:  EIF2S1
+
+
+
