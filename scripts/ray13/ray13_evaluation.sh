@@ -2,7 +2,7 @@
 #SBATCH --partition=carter-compute
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
-#SBATCH --time=7-00:00:00
+#SBATCH --time=14-00:00:00
 #SBATCH -o ./%x.%A.%a.out
 #SBATCH -e ./%x.%A.%a.err
 #SBATCH --array=1-1%1

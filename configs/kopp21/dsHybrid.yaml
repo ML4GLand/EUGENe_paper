@@ -8,15 +8,17 @@ model:
   scheduler: reduce_lr_on_plateau
   scheduler_patience: 2
   conv_kwargs:
-    channels: [4, 32, 64]
-    conv_kernels: [15, 5]
-    pool_kernels: [2, 1]
+    channels: [4, 10, 8]
+    conv_kernels: [11, 3]
+    pool_kernels: [30]
+    pool_strides: [1]
     dropout_rates: 0.2
     batchnorm: True
+    omit_final_pool: True
   rnn_kwargs:
     output_dim: 128
     batch_first: True
   fc_kwargs:
-    hidden_dims: [32]
+    hidden_dims: [64]
     dropout_rate: 0.2
     batchnorm: True

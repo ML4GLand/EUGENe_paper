@@ -20,7 +20,7 @@ eu.settings.output_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/outpu
 eu.settings.logging_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/logs/ray13"
 eu.settings.config_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/configs/ray13"
 eu.settings.figure_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/figures/ray13"
-number_kmers=1000
+number_kmers=None
 
 # Load the test data
 sdata_test = eu.dl.read_h5sd(os.path.join(eu.settings.dataset_dir, "norm_setB_processed_ST.h5sd"))
@@ -80,7 +80,7 @@ for i, task in tqdm(enumerate(target_cols), desc="Calculating metrics on each ta
         continue
 
 pearson_setA_long["Model"] = "SetA"
-pearson_setA_long["Model"] = "SetA"
+spearman_setA_long["Model"] = "SetA"
 pearson_setA_long.to_csv(os.path.join(eu.settings.output_dir, f"pearson_performance_{number_kmers}kmers_setA.tsv"), index=False, sep="\t")
 spearman_setA_long.to_csv(os.path.join(eu.settings.output_dir, f"spearman_performance_{number_kmers}kmers_setA.tsv"), index=False, sep="\t")
 
