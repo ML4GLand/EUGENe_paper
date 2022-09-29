@@ -2,6 +2,7 @@ data
 logs/
 output/
 archive/
+zenodo/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
