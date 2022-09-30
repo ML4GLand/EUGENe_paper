@@ -55,7 +55,6 @@ def prep_new_model(
     # Return the model
     return model 
 
-"""
 # Train 5 models with 5 different random initializations
 model_types = ["CNN", "Hybrid", "Jores21CNN"]
 model_names = ["ssCNN", "ssHybrid", "Jores21CNN"]
@@ -106,7 +105,6 @@ for model_name, model_type in zip(model_names, model_types):
         
 # Save training predictions        
 sdata_leaf.write_h5sd(os.path.join(eu.settings.output_dir, "leaf_train_predictions.h5sd"))
-"""
 
 # Train 5 models with 5 different random initializations
 model_types = ["CNN", "Hybrid", "Jores21CNN"]
