@@ -1,5 +1,5 @@
 # Welcome to the EUGENe Paper Repo!
-This repository contains the code used to generate the results presented in the manuscript "EUGENe: A Python toolkit for predictive analyses of regulatory sequences."
+This repository contains the code used to generate the results presented in the manuscript "EUGENe: A Python toolkit for predictive analyses of regulatory sequences." You can find the EUGENe documentation pages [here](https://eugene-tools.readthedocs.io/en/latest/index.html) and the EUGENe GitHub [here](https://github.com/cartercompbio/EUGENe).
 
 Each directory within this repository is broken up into the three use cases (section titles in *italics*) presented in the above preprint:
 1. `jores21` -- *STARR-seq plant promoter activity prediction*
@@ -10,7 +10,7 @@ Each directory within this repository is broken up into the three use cases (sec
 You can install the version of EUGENe used for the preprint with `pip`
 
 ```bash
-pip install eugene-tools==0.1.0[janggu,kipoi,memesuite]
+pip install eugene-tools==0.0.6[janggu,kipoi,memesuite]
 ```
 
 # Datasets
@@ -33,7 +33,7 @@ What you really came for. These are the pillars of the workflow run for each use
 - `dataset_EDA.ipynb` — perform visualizations of your data to better understand what is going on with it. You can often iterate between this and ETL to get a final version of your data for loading into a model
 - `dataset_training.ipynb` — train a single or multiple models on one or multiple iterations of the dataset. This notebook or section is reserved for calls to fit and visualizations of training summaries
 - `dataset_evaluate.ipynb` — evaluate trained models on test data and visualize and summarize the performance. This often starts with loading in the best iteration of the model from the training notebook and getting predictions on some test data of interest. Once predictions are generated, they can be added to SeqData or loaded in to generate useful summaries and visualizations
-- `dataset_intepret.ipynb` — interpret trained models with either test data or random data that is manipulated by model outputs or prior knowledge. This can often be combined with the previous notebook, but can sometimes be standalone
+- `dataset_interpret.ipynb` — interpret trained models with either test data or random data that is manipulated by model outputs or prior knowledge. This can often be combined with the previous notebook, but can sometimes be standalone
 
 ## `scripts/`
 These contain Python scripts for when you have to submit a job to a cluster or run it on your local machine behind a screen because it will take too long otherwise. These are organized in a similar manner to the `notebooks` for each use case.
