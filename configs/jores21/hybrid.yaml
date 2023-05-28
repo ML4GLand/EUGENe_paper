@@ -1,7 +1,7 @@
 module: SequenceModule
 model:
-  model_name: CNNalaJores21
-  arch_name: CNN
+  model_name: HybridalaJores21
+  arch_name: Hybrid
   arch:
     input_len: 170
     output_dim: 1
@@ -15,6 +15,9 @@ model:
       dropout_rates: 0.3
       batchnorm: True
       activations: relu
+    recurrent_kwargs:
+      hidden_dim: 128
+      batch_first: True
     dense_kwargs:
       hidden_dims: [64]
       dropout_rates: 0.2

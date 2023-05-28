@@ -3,6 +3,7 @@ logs/
 output/
 archive/
 zenodo/
+figures/
 *.DS_Store
 
 # Byte-compiled / optimized / DLL files
