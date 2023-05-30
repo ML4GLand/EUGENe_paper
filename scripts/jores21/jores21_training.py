@@ -1,208 +1,102 @@
+# General imports
 import os
-import logging
-import eugene as eu
+import torch
+import numpy as np
+import pandas as pd
+import xarray as xr
+from copy import deepcopy 
 
-# Set-up directories
-eu.settings.dataset_dir = "/cellar/users/aklie/data/eugene/jores21"
-eu.settings.output_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/output/jores21"
-eu.settings.logging_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/logs/jores21"
-eu.settings.config_dir = "/cellar/users/aklie/projects/EUGENe/EUGENe_paper/configs/jores21"
-eu.settings.verbosity = logging.ERROR
+# EUGENe imports and settings
+from eugene import models
+from eugene import train
+from eugene import settings
+settings.dataset_dir = "/cellar/users/aklie/data/eugene/revision/jores21"
+settings.output_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/output/revision/jores21"
+settings.logging_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/logs/revision/jores21"
+settings.config_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/configs/jores21"
 
-# Load in the preprocessed training data
-sdata_leaf = eu.dl.read(os.path.join(eu.settings.dataset_dir, "leaf_processed_train.h5sd"))
-sdata_proto = eu.dl.read(os.path.join(eu.settings.dataset_dir, "proto_processed_train.h5sd"))
-sdata_combined = eu.dl.concat([sdata_leaf, sdata_proto], keys=["leaf", "proto"])
-sdata_leaf, sdata_proto, sdata_combined
+# EUGENe packages
+import seqdata as sd
+import motifdata as md
 
-# Grab initialization motifs
-core_promoter_elements = eu.dl.motif.MinimalMEME(os.path.join(eu.settings.dataset_dir, 'CPEs.meme'))
-tf_groups = eu.dl.motif.MinimalMEME(os.path.join(eu.settings.dataset_dir, 'TF-clusters.meme'))
-all_motifs = {**core_promoter_elements.motifs, **tf_groups.motifs}
+# Load in the `leaf`, `proto` and `combined` `SeqData`s 
+sdata_leaf = sd.open_zarr(os.path.join(settings.dataset_dir, "jores21_leaf_train.zarr"))
+sdata_proto = sd.open_zarr(os.path.join(settings.dataset_dir, "jores21_proto_train.zarr"))
+def concat_seqdatas(seqdatas, keys):
+    for i, s in enumerate(seqdatas):
+        s["batch"] = keys[i]
+    return xr.concat(seqdatas, dim="_sequence")
+sdata_combined = concat_seqdatas([sdata_leaf, sdata_proto], ["leaf", "proto"])
 
-# Function to prepare a new model for training
-from pytorch_lightning import seed_everything
+# Load in PFMs to initialize the 1st layer of the model with
+core_promoter_elements = md.read_meme(os.path.join(settings.dataset_dir, "CPEs.meme"))
+tf_clusters = md.read_meme(os.path.join(settings.dataset_dir, "TF-clusters.meme"))
+all_motifs = deepcopy(core_promoter_elements)
+for motif in tf_clusters:
+    all_motifs.add_motif(motif)
+
+# Function for instantiating a new randomly initialized model
 def prep_new_model(
-    seed,
-    arch,
-    config
+    config,
+    seed
 ):
     # Instantiate the model
-    model = eu.models.load_config(
-        arch=arch,
-        model_config=config
-    )
-    
-    seed_everything(seed)
+    model = models.load_config(config_path=config, seed=seed)
     
     # Initialize the model prior to conv filter initialization
-    eu.models.init_weights(model)
+    models.init_weights(model)
 
     # Initialize the conv filters
-    if arch == "Jores21CNN":
-        module_name, module_number, kernel_name, kernel_number = "biconv", None, "kernels", 0, 
-    elif arch in ["CNN", "Hybrid"]:
-        module_name, module_number, kernel_name, kernel_number = "convnet", 0, None, None
-    eu.models.init_from_motifs(
-        model, 
-        all_motifs, 
-        module_name=module_name,
-        module_number=module_number,
-        kernel_name=kernel_name,
-        kernel_number=kernel_number
+    if model.arch_name == "Jores21CNN":
+        layer_name = "arch.biconv.kernels"
+        list_index = 0
+    elif model.arch_name in ["CNN", "Hybrid", "DeepSTARR"]:
+        layer_name = "arch.conv1d_tower.layers.0"
+        list_index = None
+    models.init_motif_weights(
+        model=model,
+        layer_name=layer_name,
+        list_index=list_index,
+        motifs=all_motifs
     )
 
     # Return the model
     return model 
 
-# Train 5 models with 5 different random initializations
-model_types = ["CNN", "Hybrid", "Jores21CNN"]
-model_names = ["ssCNN", "ssHybrid", "Jores21CNN"]
+# Train 5 models with 5 different random initializations for each dataset and mopdel architecture
+training_sets = {"leaf": sdata_leaf, "proto": sdata_proto, "combined": sdata_combined}
+configs = ["cnn.yaml", "hybrid.yaml", "jores21_cnn.yaml", "deepstarr.yaml"]
 trials = 5
-for model_name, model_type in zip(model_names, model_types):
+for training_set in training_sets:
     for trial in range(1, trials+1):
-        print(f"{model_name} trial {trial}")
+        for config in configs:
 
-        # Initialize the model
-        leaf_model = prep_new_model(
-            arch=model_type, 
-            config=os.path.join(eu.settings.config_dir, f"{model_name}.yaml"),
-            seed=trial
-        )
-        
-        # Train the model
-        eu.train.fit(
-            model=leaf_model, 
-            sdata=sdata_leaf, 
-            gpus=1, 
-            target_keys="enrichment",
-            train_key="train_val",
-            epochs=25,
-            batch_size=128,
-            num_workers=0,
-            name=model_name,
-            seed=trial,
-            version=f"leaf_trial_{trial}",
-            enable_model_summary=False,
-            verbosity=logging.ERROR
-        )
-        
-        # Get predictions on the training data
-        eu.evaluate.train_val_predictions(
-            leaf_model,
-            sdata=sdata_leaf, 
-            target_keys="enrichment",
-            train_key="train_val",
-            batch_size=128,
-            num_workers=0,
-            name=model_name,
-            version=f"leaf_trial_{trial}",
-            prefix=f"{model_name}_trial_{trial}_"
-        )
-        
-        # Delete to make room for new model
-        del leaf_model
-        
-# Save training predictions        
-sdata_leaf.write_h5sd(os.path.join(eu.settings.output_dir, "leaf_train_predictions.h5sd"))
+            # Print the model name
+            sdata = training_sets[training_set]
+            model_name = config.split(".")[0]
+            print(f"{training_set} {model_name} trial {trial}")
 
-# Train 5 models with 5 different random initializations
-model_types = ["CNN", "Hybrid", "Jores21CNN"]
-model_names = ["ssCNN", "ssHybrid", "Jores21CNN"]
-trials = 5
-for model_name, model_type in zip(model_names, model_types):
-    for trial in range(1, trials+1):
-        print(f"{model_name} trial {trial}")
+            # Initialize the model
+            model = prep_new_model(config, seed=trial)
 
-        # Initialize the model
-        proto_model = prep_new_model(
-            arch=model_type, 
-            config=os.path.join(eu.settings.config_dir, f"{model_name}.yaml"),
-            seed=trial
-        )
-        # Train the model
-        eu.train.fit(
-            model=proto_model, 
-            sdata=sdata_proto, 
-            gpus=1, 
-            target_keys="enrichment",
-            train_key="train_val",
-            epochs=25,
-            batch_size=128,
-            num_workers=0,
-            name=model_name,
-            seed=trial,
-            version=f"proto_trial_{trial}",
-            enable_model_summary=False,
-            verbosity=logging.ERROR
-        )
-        
-        # Get predictions on the training data
-        eu.evaluate.train_val_predictions(
-            proto_model,
-            sdata=sdata_proto, 
-            target_keys="enrichment",
-            train_key="train_val",
-            batch_size=128,
-            num_workers=0,
-            name=model_name,
-            version=f"proto_trial_{trial}",
-            prefix=f"{model_name}_trial_{trial}_"
-        )
-        
-        # Delete to make room for new model
-        del proto_model
-        
-# Save training predictions
-sdata_proto.write_h5sd(os.path.join(eu.settings.output_dir, "proto_train_predictions.h5sd"))
+            # Fit the model
+            train.fit_sequence_module(
+                model,
+                sdata,
+                seq_key="ohe_seq",
+                target_keys=["enrichment"],
+                in_memory=True,
+                train_key="train_val",
+                epochs=25,
+                batch_size=128,
+                num_workers=4,
+                prefetch_factor=2,
+                drop_last=False,
+                name=model_name,
+                version=f"{training_set}_trial_{trial}",
+                seq_transforms={"ohe_seq": lambda x: torch.tensor(x, dtype=torch.float32).transpose(1, 2)},
+                seed=trial
+            )
 
-# Train 5 models with 5 different random initializations
-model_types = ["CNN", "Hybrid", "Jores21CNN"]
-model_names = ["ssCNN", "ssHybrid", "Jores21CNN"]
-trials = 5
-for model_name, model_type in zip(model_names, model_types):
-    for trial in range(1, trials+1):
-        print(f"{model_name} trial {trial}")
-
-        # Initialize the model
-        combined_model = prep_new_model(
-            arch=model_type, 
-            config=os.path.join(eu.settings.config_dir, f"{model_name}.yaml"),
-            seed=trial
-        )
-        
-        # Train the model
-        eu.train.fit(
-            model=combined_model, 
-            sdata=sdata_combined, 
-            gpus=1, 
-            target_keys="enrichment",
-            train_key="train_val",
-            epochs=25,
-            batch_size=128,
-            num_workers=0,
-            name=model_name,
-            seed=trial,
-            version=f"combined_trial_{trial}",
-            enable_model_summary=False,
-            verbosity=logging.ERROR
-        )
-        
-        # Get predictions on the training data
-        eu.evaluate.train_val_predictions(
-            combined_model,
-            sdata=sdata_combined, 
-            target_keys="enrichment",
-            train_key="train_val",
-            batch_size=128,
-            num_workers=0,
-            name=model_name,
-            version=f"combined_trial_{trial}",
-            prefix=f"{model_name}_trial_{trial}_"
-        )
-        
-        # Delete to make room for new model
-        del combined_model
-        
-# Save training predictions
-sdata_combined.write_h5sd(os.path.join(eu.settings.output_dir, "combined_train_predictions.h5sd"))
+            # Make room for the next model 
+            del model
