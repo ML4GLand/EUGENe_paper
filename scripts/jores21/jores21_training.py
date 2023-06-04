@@ -11,8 +11,8 @@ from eugene import models
 from eugene import train
 from eugene import settings
 settings.dataset_dir = "/cellar/users/aklie/data/eugene/revision/jores21"
-settings.output_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/output/revision/jores21"
-settings.logging_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/logs/revision/jores21"
+settings.output_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/output/fix_full/jores21"
+settings.logging_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/logs/fix_full/jores21"
 settings.config_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/configs/jores21"
 
 # EUGENe packages
@@ -44,7 +44,7 @@ def prep_new_model(
     model = models.load_config(config_path=config, seed=seed)
     
     # Initialize the model prior to conv filter initialization
-    models.init_weights(model)
+    models.init_weights(model, initializer="kaiming_normal")
 
     # Initialize the conv filters
     if model.arch_name == "Jores21CNN":
@@ -57,7 +57,12 @@ def prep_new_model(
         model=model,
         layer_name=layer_name,
         list_index=list_index,
-        motifs=all_motifs
+        initializer="xavier_uniform",
+        motifs=all_motifs,
+        convert_to_pwm=False,
+        divide_by_bg=True,
+        motif_align="left",
+        kernel_align="left"
     )
 
     # Return the model
@@ -94,7 +99,7 @@ for training_set in training_sets:
                 drop_last=False,
                 name=model_name,
                 version=f"{training_set}_trial_{trial}",
-                seq_transforms={"ohe_seq": lambda x: torch.tensor(x, dtype=torch.float32).transpose(1, 2)},
+                seq_transforms={"ohe_seq": lambda x: torch.tensor(x, dtype=torch.float32).transpose(1, 2), "target": lambda x: torch.tensor(x, dtype=torch.float32)},
                 seed=trial
             )
 
