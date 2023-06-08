@@ -1,32 +1,41 @@
 # General imports
 import os
+import sys
 import torch
 import numpy as np
 import pandas as pd
-import xarray as xr
 from copy import deepcopy 
+import pytorch_lightning
 
 # EUGENe imports and settings
+import eugene as eu
+from eugene import dataload as dl
 from eugene import models
 from eugene import train
 from eugene import settings
 settings.dataset_dir = "/cellar/users/aklie/data/eugene/revision/jores21"
-settings.output_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/output/fix_full/jores21"
-settings.logging_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/logs/fix_full/jores21"
+settings.output_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/output/jores21"
+settings.logging_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/logs/jores21"
 settings.config_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/configs/jores21"
 
 # EUGENe packages
 import seqdata as sd
 import motifdata as md
 
-# Load in the `leaf`, `proto` and `combined` `SeqData`s 
+# Print versions
+print(f"Python version: {sys.version}")
+print(f"NumPy version: {np.__version__}")
+print(f"Pandas version: {pd.__version__}")
+print(f"Eugene version: {eu.__version__}")
+print(f"SeqData version: {sd.__version__}")
+print(f"MotifData version: {md.__version__}")
+print(f"PyTorch version: {torch.__version__}")
+print(f"PyTorch Lightning version: {pytorch_lightning.__version__}")
+
+# Load in the preprocessed training data
 sdata_leaf = sd.open_zarr(os.path.join(settings.dataset_dir, "jores21_leaf_train.zarr"))
 sdata_proto = sd.open_zarr(os.path.join(settings.dataset_dir, "jores21_proto_train.zarr"))
-def concat_seqdatas(seqdatas, keys):
-    for i, s in enumerate(seqdatas):
-        s["batch"] = keys[i]
-    return xr.concat(seqdatas, dim="_sequence")
-sdata_combined = concat_seqdatas([sdata_leaf, sdata_proto], ["leaf", "proto"])
+sdata_combined = dl.concat_seqdatas([sdata_leaf, sdata_proto], ["leaf", "proto"])
 
 # Load in PFMs to initialize the 1st layer of the model with
 core_promoter_elements = md.read_meme(os.path.join(settings.dataset_dir, "CPEs.meme"))

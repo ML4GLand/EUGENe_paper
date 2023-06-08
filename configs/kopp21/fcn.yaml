@@ -1,0 +1,21 @@
+module: SequenceModule
+model:
+  model_name: FCNalaKopp21
+  arch_name: FCN
+  arch:
+    input_len: 500
+    output_dim: 1
+    dense_kwargs:
+      hidden_dims: [256, 128]
+      dropout_rates: 0.2
+      batchnorm: True
+task: binary_classification
+loss_fxn: bce
+optimizer: adam
+optimizer_kwargs:
+  amsgrad: true
+optimizer_lr: 0.001
+scheduler: reduce_lr_on_plateau
+scheduler_monitor: val_loss_epoch
+scheduler_kwargs:
+  patience: 2
