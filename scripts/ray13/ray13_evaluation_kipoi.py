@@ -39,7 +39,7 @@ print(f"Python version: {sys.version}")
 print(f"NumPy version: {np.__version__}")
 print(f"Pandas version: {pd.__version__}")
 print(f"Eugene version: {eu.__version__}")
-#print(f"SeqData version: {sd.__version__}")
+print(f"SeqData version: {sd.__version__}")
 print(f"PyTorch version: {torch.__version__}")
 print(f"PyTorch Lightning version: {pytorch_lightning.__version__}")
 
@@ -90,12 +90,13 @@ for i, (protein_id , motif_id) in tqdm(enumerate(zip(ids_w_target_cols, target_c
     except:
         print("Failed to load model")
 
+sd.to_zarr(sdata_test, os.path.join(settings.output_dir, "norm_test_predictions_kipoi.zarr"), load_first=True, mode="w")
+
 ################
 # Saving results
 ################
                 
 # Save the sdata with kipoi predictions
-sd.to_zarr(sdata_test, os.path.join(eu.settings.output_dir, "norm_test_predictions_kipoi.zarr"))
 #sdata_test = sd.open_zarr(os.path.join(eu.settings.output_dir, "norm_test_predictions_kipoi.zarr"))
 
 # Evaluate the predictions using the RNAcompete metrics

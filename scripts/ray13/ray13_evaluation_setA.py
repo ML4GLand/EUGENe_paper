@@ -31,7 +31,7 @@ print(f"Python version: {sys.version}")
 print(f"NumPy version: {np.__version__}")
 print(f"Pandas version: {pd.__version__}")
 print(f"Eugene version: {eu.__version__}")
-#print(f"SeqData version: {sd.__version__}")
+print(f"SeqData version: {sd.__version__}")
 
 # Set the number of kmers to use
 number_kmers=None

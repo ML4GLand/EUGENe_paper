@@ -8,11 +8,8 @@ import pytorch_lightning
 
 # EUGENe imports and settings
 import eugene as eu
-from eugene import models
+from eugene import models, train, evaluate, settings
 from eugene.models import zoo
-from eugene import train
-from eugene import evaluate
-from eugene import settings
 settings.dataset_dir = "/cellar/users/aklie/data/eugene/revision/ray13"
 settings.output_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/output/revision/ray13"
 settings.logging_dir = "/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/logs/revision/ray13"
@@ -26,7 +23,7 @@ print(f"Python version: {sys.version}")
 print(f"NumPy version: {np.__version__}")
 print(f"Pandas version: {pd.__version__}")
 print(f"Eugene version: {eu.__version__}")
-#print(f"SeqData version: {sd.__version__}")
+print(f"SeqData version: {sd.__version__}")
 print(f"PyTorch version: {torch.__version__}")
 print(f"PyTorch Lightning version: {pytorch_lightning.__version__}")
 
@@ -98,6 +95,7 @@ for i, target_col in enumerate(target_cols_ST):
         seed=i
     )
 
+    # Evaluate the model on train and validation sets
     evaluate.train_val_predictions_sequence_module(
         model,
         sdata=sdata_training_ST,
