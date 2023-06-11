@@ -8,12 +8,11 @@ def main(
     n_seqs: int,
     seq_length: int,
     output: Path,
-    max_memory: Annotated[
-        str, typer.Argument(help="Max memory e.g. 32G, defaults to megabytes.")
-    ],
+    max_memory: Annotated[int, typer.Argument(help="Max memory in mebibytes.")],
 ):
     import logging
     import sys
+    from time import perf_counter
 
     import numcodecs as ncds
     import numpy as np
@@ -21,27 +20,18 @@ def main(
     from tqdm import tqdm
 
     logger = logging.getLogger("GENERATE_SDATA")
-    handler = logging.StreamHandler(sys.stdout)
+    handler = logging.StreamHandler(sys.stderr)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
-    logger.info("Parsing max memory.")
-    units = {"G": int(1e9), "M": int(1e6), "K": int(1e3)}
-    if max_memory[-1] in units:
-        unit = max_memory[-1].upper()
-        max_memory_bytes = int(max_memory[:-1]) * units[unit]
-    else:
-        try:
-            max_memory_bytes = int(max_memory) * units["M"]
-        except ValueError:
-            raise ValueError(
-                """Could not parse max memory. Should be an int, optionally followed 
-                with a unit {G, M, K}."""
-            )
-    max_batch_size = max_memory_bytes // seq_length
+    logger.info(f"Generating data: {n_seqs=} {seq_length=}")
+
+    # 1024**2 bytes per mebibyte
+    max_batch_size = (max_memory*1024**2) // (16*seq_length)
     logger.info(
         f"Setting max batch size to {max_batch_size} based on memory constraints."
     )
@@ -56,19 +46,31 @@ def main(
     compressor = ncds.Blosc("zstd", clevel=7, shuffle=-1)
 
     seq = store.create(
-        "seq", shape=(n_seqs, seq_length), dtype=alphabet.dtype, compressor=compressor
+        "seq",
+        shape=(n_seqs, seq_length),
+        chunks=(min(max_batch_size, n_seqs), None),
+        dtype=alphabet.dtype,
+        compressor=compressor,
     )
+    seq.attrs["_ARRAY_DIMENSIONS"] = ["_sequence", "_length"]
 
-    rng = np.random.default_rng()
 
     logger.info("Adding sequences to Zarr store.")
 
-    pbar = tqdm(unit="sequences", total=n_seqs)
+    rng = np.random.default_rng()
+    pbar = tqdm(total=n_seqs, unit='sequence')
+    t0 = perf_counter()
+    times = []
     for i in range(0, n_seqs, max_batch_size):
         # don't go past n_seqs
         batch_size = min(max_batch_size, n_seqs - i)
+        t1 = perf_counter()
         seq[i : i + batch_size] = rng.choice(alphabet, (batch_size, seq_length))
+        times.append(perf_counter() - t1)
         pbar.update(batch_size)
+
+    logger.info(f"Generated and wrote data in {perf_counter() - t0:.2f} seconds.")
+    logger.info(f"Median time to write a batch: {np.median(times):.4f} seconds.")
 
     zarr.consolidate_metadata(output)  # type: ignore
 
