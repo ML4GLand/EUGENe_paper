@@ -8,6 +8,8 @@ figures/
 *.DS_Store
 *.out
 *.err
+*.html
+*.bin
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
