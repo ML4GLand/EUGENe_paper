@@ -5,14 +5,15 @@
 #SBATCH -p carter-compute
 
 #SBATCH -J profile_mem
-#SBATCH -a 0-37%8
+#SBATCH -a 24%8
 #SBATCH -c 2
-#SBATCH --mem-per-cpu 16G
+#SBATCH --mem-per-cpu 24G
 
 echo Starting
 date
 
 wdir=/cellar/users/dlaub/projects/ML4GLand/EUGENe_paper/scripts/training_mem
+memray_dir=${wdir}/memray
 
 stores=( ${wdir}/data/*.zarr )
 store=${stores[$SLURM_ARRAY_TASK_ID]}
@@ -32,18 +33,32 @@ echo seq_length=$seq_length
 
 memray run \
     --native \
-    --output ${wdir}/memray_n=${n_seq}_l=${seq_length}.bin \
+    --output ${memray_dir}/memray_n=${n_seq}_l=${seq_length}.bin \
+    --force \
     training_mem.py \
     $store
+
+memray stats \
+    --json \
+    --force \
+    --output ${memray_dir}/memray_stats_n=${n_seq}_l=${seq_length}.json \
+    ${memray_dir}/memray_n=${n_seq}_l=${seq_length}.bin
 
 if [[ $((n_seq * seq_length )) -le 10000000 ]]; then
     echo "Including run with data loaded into memory"
     memray run \
         --native \
-        --output ${wdir}/memray_n=${n_seq}_l=${seq_length}_load.bin \
+        --output ${memray_dir}/memray_n=${n_seq}_l=${seq_length}_load.bin \
+        --force \
         training_mem.py \
         --load \
         $store
+    
+    memray stats \
+        --json \
+        --force \
+        --output ${memray_dir}/memray_stats_n=${n_seq}_l=${seq_length}_load.json \
+        ${memray_dir}/memray_n=${n_seq}_l=${seq_length}_load.bin
 fi
 
 echo Finished
