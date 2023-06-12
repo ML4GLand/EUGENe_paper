@@ -7,11 +7,11 @@
 #SBATCH -J rechunk
 #SBATCH -a 0-37%8
 #SBATCH -c 2
-#SBATCH --mem-per-cpu 24G
+#SBATCH --mem 48G
 
 wdir=/cellar/users/dlaub/projects/ML4GLand/EUGENe_paper/scripts/training_mem
 
 stores=( ${wdir}/data/*.zarr )
 store=${stores[$SLURM_ARRAY_TASK_ID]}
 
-python rechunk_sdata.py $store
+python ${wdir}/rechunk_sdata.py $store

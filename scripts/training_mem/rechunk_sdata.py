@@ -27,17 +27,21 @@ def main(
     logging.info(f'Sequences have shape: {root["seq"].shape}')
     
     length = root['seq'].shape[1]
-    seqs_per_chunk = min(mem_per_chunk // length, 4096)
+    seqs_per_chunk = min(mem_per_chunk // length, 4096, root['seq'].shape[0])
     logging.info(f'Rechunking to have {seqs_per_chunk} sequences per chunk')
+    
+    target_store = store.parent / "rechunked" / store.name
     
     plan = rechunk(
         zarr.open(store),
         target_chunks={'seq': {'_sequence': seqs_per_chunk, '_length': length}},
-        max_mem="40GB",
-        target_store=f'{store.parent / store.stem}_rechunked.zarr',
+        max_mem="20GB",
+        target_store=str(target_store),
         target_options={'seq': {'compressor': ncds.Blosc('zstd', clevel=7, shuffle=-1)}}
     )
     plan.execute()
+    
+    zarr.consolidate_metadata(str(target_store))
     
 if __name__ == '__main__':
     typer.run(main)

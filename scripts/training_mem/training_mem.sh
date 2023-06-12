@@ -5,9 +5,9 @@
 #SBATCH -p carter-compute
 
 #SBATCH -J profile_mem
-#SBATCH -a 24%8
+#SBATCH -a 0-37%8
 #SBATCH -c 2
-#SBATCH --mem-per-cpu 24G
+#SBATCH --mem 32G
 
 echo Starting
 date
@@ -15,7 +15,7 @@ date
 wdir=/cellar/users/dlaub/projects/ML4GLand/EUGENe_paper/scripts/training_mem
 memray_dir=${wdir}/memray
 
-stores=( ${wdir}/data/*.zarr )
+stores=( ${wdir}/data/rechunked/*.zarr )
 store=${stores[$SLURM_ARRAY_TASK_ID]}
 
 echo Processing $store
