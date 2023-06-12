@@ -1,0 +1,8 @@
+arch:
+  input_len: 500
+  output_dim: 1
+  aggr: concat
+  dense_kwargs:
+    hidden_dims: [256, 128]
+    dropout_rates: 0.2
+    batchnorm: True
