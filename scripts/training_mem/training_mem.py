@@ -29,7 +29,7 @@ def main(
     logger.setLevel(logging.INFO)
     
     # Load the data
-    logger.info('Opening sdata.')
+    logger.info(f'Opening sdata: {str(store)}')
     sdata = sd.open_zarr(store)
     
     logger.info(f'Chunks: {sdata.seq.data.chunksize}')
