@@ -4,9 +4,10 @@
 #SBATCH -e /cellar/users/dlaub/projects/ML4GLand/EUGENe_paper/scripts/err/%A_%a_%x.err
 #SBATCH -p carter-compute
 
+#SBATCH -J profile_mem
 #SBATCH -a 0-37%8
 #SBATCH -c 2
-#SBATCH --mem-per-cpu 8G
+#SBATCH --mem-per-cpu 16G
 
 echo Starting
 date
@@ -26,8 +27,10 @@ n_seq=${n_seq:2}
 seq_length=${arr[2]}
 seq_length=${seq_length:2}
 
+echo n_seq=$n_seq
+echo seq_length=$seq_length
+
 memray run \
-    --follow-fork \
     --native \
     --output ${wdir}/memray_n=${n_seq}_l=${seq_length}.bin \
     training_mem.py \
@@ -36,7 +39,6 @@ memray run \
 if [[ $((n_seq * seq_length )) -le 10000000 ]]; then
     echo "Including run with data loaded into memory"
     memray run \
-        --follow-fork \
         --native \
         --output ${wdir}/memray_n=${n_seq}_l=${seq_length}_load.bin \
         training_mem.py \

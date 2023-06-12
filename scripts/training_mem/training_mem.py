@@ -5,9 +5,9 @@ import typer
 
 def main(
     store: Path,
-    batch_size=128,
-    num_batches=100,
-    load=False,
+    batch_size: int = 128,
+    num_batches: int = 100,
+    load: bool = False,
 ):
     import logging
     import sys
@@ -32,7 +32,7 @@ def main(
     logger.info('Opening sdata.')
     sdata = sd.open_zarr(store)
     
-    logger.info(f'Chunks: {sdata.seq.chunksizes}')
+    logger.info(f'Chunks: {sdata.seq.data.chunksize}')
 
     # Load into mem if specified
     if load:
