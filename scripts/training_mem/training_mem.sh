@@ -5,9 +5,9 @@
 #SBATCH -p carter-compute
 
 #SBATCH -J profile_mem
-#SBATCH -a 0-37%8
+#SBATCH -a 24,17
 #SBATCH -c 2
-#SBATCH --mem 32G
+#SBATCH --mem 64G
 
 echo Starting
 date
