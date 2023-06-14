@@ -11,6 +11,8 @@ figures/
 *.err
 *.html
 *.bin
+*.tmp
+temp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
