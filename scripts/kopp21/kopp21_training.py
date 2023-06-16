@@ -59,7 +59,7 @@ def prep_new_model(
 
 # Train 5 models with 5 different random initializations
 configs = args.configs.split(',')
-trials = 1
+trials = 5
 models_trained = ""
 for config, trial in product(configs, range(1, trials+1)):
     model_name = config.split('.')[0]

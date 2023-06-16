@@ -5,28 +5,31 @@ model:
   arch:
     input_len: 500
     output_dim: 1
-    aggr: concat_cnn
+    strand: ds
+    task: binary_classification
+    loss_fxn: bce
+    lr: 0.001
+    scheduler: reduce_lr_on_plateau
+    scheduler_patience: 2
     conv_kwargs:
-      input_channels: 4
-      conv_channels: [10, 8]
+      channels: [4, 10, 8]
       conv_kernels: [11, 3]
-      conv_strides: [1, 1]
-      pool_types: [max, null]
-      pool_kernels: [30, null]
-      pool_strides: [1, null]
+      pool_kernels: [30]
+      pool_strides: [1]
       dropout_rates: 0.2
       batchnorm: True
-      activations: relu
-    recurrent_kwargs:
-      hidden_dim: 128
+      omit_final_pool: True
+    rnn_kwargs:
+      output_dim: 128
       batch_first: True
-    dense_kwargs:
+    fc_kwargs:
       hidden_dims: [64]
-      dropout_rates: 0.2
+      dropout_rate: 0.2
       batchnorm: True
 task: binary_classification
 loss_fxn: bce
 optimizer: adam
+optimizer_kwargs:
 optimizer_lr: 0.001
 scheduler: reduce_lr_on_plateau
 scheduler_monitor: val_loss_epoch

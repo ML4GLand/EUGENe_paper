@@ -84,7 +84,7 @@ def generate_datasets(output_dir, num_seqs, seq_lens, cov, cov_dim, seed):
             shape = (n, l)
             print(f"Generating {n} sequences of length {l}")
             start_time = time.time()
-            seqs = random_seqs(shape, alphabet=sp.ALPHABETS["DNA"], seed=seed)
+            seqs = random_seqs(shape, alphabet=sp.alphabets.DNA, seed=seed)
             mem_usage = sys.getsizeof(seqs)
             mem_usage_gb = mem_usage / 1e9
             end_time = time.time()
