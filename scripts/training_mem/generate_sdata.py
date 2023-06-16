@@ -31,7 +31,7 @@ def main(
     logger.info(f"Generating data: {n_seqs=} {seq_length=}")
 
     # 1024**2 bytes per mebibyte
-    max_batch_size = (max_memory*1024**2) // (16*seq_length)
+    max_batch_size = (max_memory * 1024**2) // (16 * seq_length)
     logger.info(
         f"Setting max batch size to {max_batch_size} based on memory constraints."
     )
@@ -54,11 +54,10 @@ def main(
     )
     seq.attrs["_ARRAY_DIMENSIONS"] = ["_sequence", "_length"]
 
-
     logger.info("Adding sequences to Zarr store.")
 
     rng = np.random.default_rng()
-    pbar = tqdm(total=n_seqs, unit='sequence')
+    pbar = tqdm(total=n_seqs, unit="sequence")
     t0 = perf_counter()
     times = []
     for i in range(0, n_seqs, max_batch_size):
