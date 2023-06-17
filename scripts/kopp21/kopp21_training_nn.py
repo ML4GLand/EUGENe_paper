@@ -1,14 +1,15 @@
 # General imports
+import argparse
 import os
 import sys
+import yaml
+import importlib
 import torch
 import numpy as np
 import pandas as pd
 from copy import deepcopy 
 import pytorch_lightning
-from pytorch_lightning import seed_everything
 from itertools import product
-import yaml
 
 # EUGENe imports and settings
 import eugene as eu
@@ -26,7 +27,6 @@ import seqdata as sd
 
 # kopp21 helpers
 sys.path.append("/cellar/users/aklie/projects/ML4GLand/EUGENe_paper/scripts/kopp21")
-from kopp21_helpers import dsFCN
 
 # Print versions
 print(f"Python version: {sys.version}")
@@ -37,44 +37,59 @@ print(f"SeqData version: {sd.__version__}")
 print(f"PyTorch version: {torch.__version__}")
 print(f"PyTorch Lightning version: {pytorch_lightning.__version__}")
 
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Train and evaluate a model using EUGENe.')
+parser.add_argument('--configs', type=str, help='comma-separated list of config file names to use')
+args = parser.parse_args()
+
 # Load in the preprocessed training data
 sdata = sd.open_zarr(os.path.join(settings.dataset_dir, 'kopp21_train.zarr'))
+
+def load_config_nn(
+    config_path, 
+    **kwargs
+):
+    # If config path is just a filename, assume it's in the default config directory
+    if "/" not in config_path:
+        config_path = os.path.join(settings.config_dir, config_path)
+    with open(config_path, "r") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    module_name = config.pop("module")
+    model_params = config.pop("model")
+    arch_name = model_params["arch_name"]
+    arch = model_params["arch"]
+    model_type = getattr(importlib.import_module("kopp21_helpers"), arch_name)
+    model = model_type(**arch)
+    module_type = getattr(importlib.import_module("eugene.models"), module_name)
+    module = module_type(model, **config, **kwargs)
+    return module
 
 # Function to instantiate a new model
 def prep_new_model(
     config,
     seed,
 ):
-    # Load in the arch
-    with open(config, 'r') as f:
-        config = yaml.safe_load(f)
-    
-    # Set seed
-    seed_everything(seed)
-    
-    # Initialize the model
-    arch = dsFCN(**config["arch"])
-    models.init_weights(arch)
-    model = models.SequenceModule(
-        arch=arch,
-        task="binary_classification",
-        loss_fxn="bce",
-        optimizer="adam",
-        optimizer_lr=0.001,
-        scheduler="reduce_lr_on_plateau",
-        scheduler_monitor="val_loss_epoch",
-        scheduler_kwargs={"patience": 2}
+    # Instantiate the model
+    model = load_config_nn(
+        config_path=config,
+        seed=seed
     )
+    
+    # Initialize the model prior to conv filter initialization
+    eu.models.init_weights(model)
 
     # Return the model
     return model 
 
 # Train 5 models with 5 different random initializations
-configs = ["dsfcn.yaml"]
+configs = args.configs.split(',')
 trials = 5
+models_trained = ""
 for config, trial in product(configs, range(1, trials+1)):
     model_name = config.split('.')[0]
     print(model_name)
+    if model_name not in models_trained:
+        models_trained += model_name + '_'
 
     # Initialize the model
     model = prep_new_model(os.path.join(settings.config_dir, config), seed=trial)
@@ -133,4 +148,4 @@ for config, trial in product(configs, range(1, trials+1)):
     del model
     
 # Save the predictions!
-sd.to_zarr(sdata, os.path.join(settings.output_dir, f"train_predictions_dsfcn.zarr"), load_first=True, mode="w")
+sd.to_zarr(sdata, os.path.join(settings.output_dir, f"train_predictions_{models_trained}models.zarr"), load_first=True, mode="w")
