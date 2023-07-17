@@ -20,3 +20,5 @@ scheduler: reduce_lr_on_plateau
 scheduler_monitor: val_loss_epoch
 scheduler_kwargs:
   patience: 2
+metric_kwargs:
+  task: binary
