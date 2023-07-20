@@ -31,9 +31,9 @@ print(f"PyTorch Lightning version: {pytorch_lightning.__version__}")
 sdata_training_ST = sd.open_zarr(os.path.join(settings.dataset_dir, "norm_setA_ST.zarr"))
 
 # Grab the prediction columns for single task and multitask
-ST_keys = pd.Index(sdata_training_ST.data_vars.keys())
-target_mask_ST = ST_keys.str.contains("RNCMPT")
-target_cols_ST = ST_keys[target_mask_ST]
+ST_vars = pd.Index(sdata_training_ST.data_vars.keys())
+target_mask_ST = ST_vars.str.contains("RNCMPT")
+target_cols_ST = ST_vars[target_mask_ST]
 
 # Instantiation function
 from pytorch_lightning import seed_everything
@@ -79,10 +79,10 @@ for i, target_col in enumerate(target_cols_ST):
     train.fit_sequence_module(
         model,
         sdata_training_ST,
-        seq_key="ohe_seq",
-        target_keys=target_col,
+        seq_var="ohe_seq",
+        target_vars=target_col,
         in_memory=True,
-        train_key="train_val",
+        train_var="train_val",
         epochs=25,
         batch_size=100,
         num_workers=4,
@@ -99,10 +99,10 @@ for i, target_col in enumerate(target_cols_ST):
     evaluate.train_val_predictions_sequence_module(
         model,
         sdata=sdata_training_ST,
-        seq_key="ohe_seq",
-        target_keys=target_col,
+        seq_var="ohe_seq",
+        target_vars=target_col,
         in_memory=True,
-        train_key="train_val",
+        train_var="train_val",
         batch_size=1024,
         num_workers=4,
         prefetch_factor=2,
@@ -113,4 +113,4 @@ for i, target_col in enumerate(target_cols_ST):
     )
     
 # Save the predictions!
-sd.to_zarr(sdata_training_ST, os.path.join(settings.output_dir, f"norm_setA_predictions_ST.zarr"), load_first=True, mode="w")
+sd.to_zarr(sdata_training_ST, os.path.join(settings.output_dir, f"norm_setA_predictions_ST.zarr"), mode="w")

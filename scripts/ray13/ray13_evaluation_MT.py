@@ -71,9 +71,7 @@ version = 0
 # Multitask performance
 #######################
 
-"""
 # Get predictions on the test data from all multi task models
-
 print(f"Testing DeepBind MultiTask version {version} model")
 arch = models.zoo.DeepBind(
     input_len=41, # Length of padded sequences
@@ -86,8 +84,8 @@ model = models.SequenceModule.load_from_checkpoint(model_file, arch=arch)
 evaluate.predictions_sequence_module(
     model,
     sdata=sdata_test,
-    seq_key="ohe_seq",
-    target_keys=target_cols_MT,
+    seq_var="ohe_seq",
+    target_vars=target_cols_MT,
     batch_size=1024,
     num_workers=4,
     prefetch_factor=2,
@@ -100,15 +98,14 @@ evaluate.predictions_sequence_module(
 )
 del model
 
-sd.to_zarr(sdata_test, os.path.join(settings.output_dir, f"norm_test_predictions_v{version}_MT.zarr"), load_first=True, mode="w")
-"""
+sd.to_zarr(sdata_test, os.path.join(settings.output_dir, f"norm_test_predictions_v{version}_MT.zarr"), mode="w")
 
 ################
 # Saving results
 ################
 
 # Save the sdata with the predictions for single task, and multitask models
-sdata_test = sd.open_zarr(os.path.join(settings.output_dir, f"norm_test_predictions_v{version}_MT.zarr"))
+#sdata_test = sd.open_zarr(os.path.join(settings.output_dir, f"norm_test_predictions_v{version}_MT.zarr"))
 
 # Get evaluation metrics for all single task models and format for plotting
 pearson_MT_df, spearman_MT_df = rnacomplete_metrics_sdata_table(sdata_test, b_presence_absence, target_cols_MT, verbose=False, swifter=True, num_kmers=number_kmers, preds_suffix="_predictions_MT")

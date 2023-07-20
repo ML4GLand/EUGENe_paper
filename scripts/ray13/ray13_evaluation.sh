@@ -9,8 +9,7 @@
 # Usage: sbatch --job-name=ray13_evaluation ray13_evaluation.sh
 
 # Define the model to run
-#models=(setA ST MT Kipoi)
-models=(ST MT)
+models=(setA ST MT Kipoi)
 model=${models[$SLURM_ARRAY_TASK_ID-1]}
 
 source activate /cellar/users/aklie/opt/miniconda3/envs/ml4gland

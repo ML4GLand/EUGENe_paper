@@ -97,10 +97,10 @@ for training_set in training_sets:
             train.fit_sequence_module(
                 model,
                 sdata,
-                seq_key="ohe_seq",
-                target_keys=["enrichment"],
+                seq_var="ohe_seq",
+                target_vars=["enrichment"],
                 in_memory=True,
-                train_key="train_val",
+                train_var="train_val",
                 epochs=25,
                 batch_size=128,
                 num_workers=4,

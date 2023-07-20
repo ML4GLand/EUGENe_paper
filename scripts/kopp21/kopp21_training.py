@@ -86,10 +86,10 @@ for config, trial in product(configs, range(1, trials+1)):
         model,
         sdata,
         gpus=1,
-        seq_key="ohe_seq",
-        target_keys=["target"],
+        seq_var="ohe_seq",
+        target_vars=["target"],
         in_memory=True,
-        train_key="train_val",
+        train_var="train_val",
         epochs=25,
         early_stopping_metric='val_loss_epoch',
         early_stopping_patience=5,
@@ -107,10 +107,10 @@ for config, trial in product(configs, range(1, trials+1)):
     evaluate.train_val_predictions_sequence_module(
         model,
         sdata,
-        seq_key="ohe_seq",
-        target_keys=["target"],
+        seq_var="ohe_seq",
+        target_vars=["target"],
         in_memory=True,
-        train_key="train_val",
+        train_var="train_val",
         batch_size=1024,
         num_workers=4,
         prefetch_factor=2,
@@ -124,4 +124,4 @@ for config, trial in product(configs, range(1, trials+1)):
     del model
     
 # Save the predictions!
-sd.to_zarr(sdata, os.path.join(settings.output_dir, f"train_predictions_{models_trained}models.zarr"), load_first=True, mode="w")
+sd.to_zarr(sdata, os.path.join(settings.output_dir, f"train_predictions_{models_trained}models.zarr"), mode="w")

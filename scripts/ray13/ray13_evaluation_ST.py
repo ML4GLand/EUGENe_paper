@@ -61,7 +61,6 @@ setB_observed = sdata_test[target_cols]
 # Single task performance
 #########################
 
-"""
 # Get predictions for all single task models
 arch = zoo.DeepBind(
     input_len=41,
@@ -82,8 +81,8 @@ for i, target_col in enumerate(target_cols):
     evaluate.predictions_sequence_module(
         model,
         sdata=sdata_test, 
-        seq_key="ohe_seq",
-        target_keys=target_col,
+        seq_var="ohe_seq",
+        target_vars=target_col,
         batch_size=5096,
         num_workers=4,
         prefetch_factor=2,
@@ -96,15 +95,14 @@ for i, target_col in enumerate(target_cols):
     )
     del model
 print(f"Successful predictions: {len(trained_model_cols)}")
-sd.to_zarr(sdata_test, os.path.join(settings.output_dir, "norm_test_predictions_ST.zarr"), load_first=True, mode="w")
-"""
+sd.to_zarr(sdata_test, os.path.join(settings.output_dir, "norm_test_predictions_ST.zarr"), mode="w")
 
 ################
 # Saving results
 ################
 
 # Load the predictions
-sdata_test = sd.open_zarr(os.path.join(settings.output_dir, "norm_test_predictions_ST.zarr"))
+#sdata_test = sd.open_zarr(os.path.join(settings.output_dir, "norm_test_predictions_ST.zarr"))
 
 # Get evaluation metrics for all single task models and format for plotting
 pearson_ST_df, spearman_ST_df = rnacomplete_metrics_sdata_table(sdata_test, b_presence_absence, target_cols, verbose=False, num_kmers=number_kmers, preds_suffix="_predictions_ST")

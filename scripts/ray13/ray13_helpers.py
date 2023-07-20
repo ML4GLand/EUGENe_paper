@@ -17,6 +17,7 @@ RNA = ["A", "C", "G", "U"]
 COMPLEMENT_DNA = {"A": "T", "C": "G", "G": "C", "T": "A"}
 COMPLEMENT_RNA = {"A": "U", "C": "G", "G": "C", "U": "A"}
 
+
 # exact concise
 def _get_vocab(vocab):
     if vocab == "DNA":
@@ -26,6 +27,7 @@ def _get_vocab(vocab):
     else:
         raise ValueError("Invalid vocab, only DNA or RNA are currently supported")
 
+
 # exact concise
 def _get_vocab_dict(vocab):
     """
@@ -34,12 +36,14 @@ def _get_vocab_dict(vocab):
     """
     return {l: i for i, l in enumerate(vocab)}
 
+
 # exact concise
 def _get_index_dict(vocab):
     """
     Returns a dictionary mapping each token to its index in the vocabulary.
     """
     return {i: l for i, l in enumerate(vocab)}
+
 
 # modified concise
 def _tokenize(seq, vocab="DNA", neutral_vocab=["N"]):
@@ -77,6 +81,7 @@ def _tokenize(seq, vocab="DNA", neutral_vocab=["N"]):
         for i in range(len(seq) // nchar)
     ]
 
+
 # my own
 def _sequencize(tvec, vocab="DNA", neutral_value=-1, neutral_char="N"):
     """
@@ -86,6 +91,7 @@ def _sequencize(tvec, vocab="DNA", neutral_value=-1, neutral_char="N"):
     index_dict = _get_index_dict(vocab)
     index_dict[neutral_value] = neutral_char
     return "".join([index_dict[i] for i in tvec])
+
 
 # modified concise
 def _token2one_hot(tvec, vocab="DNA", fill_value=None):
@@ -112,6 +118,7 @@ def _token2one_hot(tvec, vocab="DNA", fill_value=None):
         arr[:, tvec_range[tvec < 0]] = fill_value
     return arr.astype(np.int8) if fill_value is None else arr.astype(np.float16)
 
+
 # modified dinuc_shuffle
 def _one_hot2token(one_hot, neutral_value=-1, consensus=False):
     """
@@ -135,6 +142,7 @@ def _one_hot2token(one_hot, neutral_value=-1, consensus=False):
     seq_inds, dim_inds = np.where(one_hot.transpose()==1)
     tokens[seq_inds] = dim_inds
     return tokens
+
 
 # pad and subset, exact concise
 def _pad(seq, max_seq_len, value="N", align="end"):
@@ -174,6 +182,7 @@ def _trim(seq, maxlen, align="end"):
         return seq[n_left:n_right]
     else:
         raise ValueError("align can be of: end, start or center")
+
 
 # modified concise
 def _pad_sequences(
@@ -233,6 +242,7 @@ def _pad_sequences(
     ]
     return padded_seqs
 
+
 # modifed concise
 def ohe_seq(
     seq: str, 
@@ -243,6 +253,7 @@ def ohe_seq(
     """Convert a sequence into one-hot-encoded array."""
     seq = seq.strip().upper()
     return _token2one_hot(_tokenize(seq, vocab, neutral_vocab), vocab, fill_value=fill_value)
+
 
 # modfied concise
 def ohe_seqs(
@@ -284,6 +295,7 @@ def ohe_seqs(
     else:
         return np.array(arr_list, dtype=object)
 
+
 # Useful helpers for generating and checking for kmers
 def generate_all_possible_kmers(n=7, alphabet="AGCU"):
     """Generate all possible kmers of length and alphabet provided
@@ -297,6 +309,7 @@ def kmer_in_seqs(seqs, kmer):
     seqs_s = pd.Series(seqs)
     kmer_binary = seqs_s.str.contains(kmer).astype(int).values
     return kmer_binary
+
 
 def rnacomplete_metrics(
     kmer_presence_mtx: np.ndarray, 
@@ -370,7 +383,7 @@ def rnacomplete_metrics(
 def rnacomplete_metrics_sdata_plot(
     sdata,
     kmer_presence_mtx: np.ndarray,
-    target_key: str,
+    target_var: str,
     return_cors: bool = False,
     verbose: bool = True,
     preds_suffix: str = "_predictions",
@@ -385,7 +398,7 @@ def rnacomplete_metrics_sdata_plot(
         A SeqData object containing the intensities for each sequence in seqs_annot.
     kmer_presence_mtx : np.ndarray
         A binary matrix of k-mers x samples. A 1 in entry (i, j) indicates that sequence j contains k-mer i.
-    target_key : str
+    target_var : str
         The key in sdata.seqs_annot to use for the intensities.
     return_cors : bool, optional
         Whether to return the Pearson and Spearman correlations, by default False (plots only) 
@@ -394,8 +407,8 @@ def rnacomplete_metrics_sdata_plot(
     preds_suffix : str, optional
         The suffix to use for the predictions, by default "_predictions"
     """
-    observed = sdata[target_key].values
-    preds = sdata[f"{target_key}{preds_suffix}"].values
+    observed = sdata[target_var].values
+    preds = sdata[f"{target_var}{preds_suffix}"].values
     
     # Get zscores, aucs and escores from observed intensities
     observed_zscores, observed_aucs, observed_escores = rnacomplete_metrics(
@@ -513,7 +526,7 @@ def rnacomplete_metrics_sdata_plot(
 def rnacomplete_metrics_sdata_table(
     sdata,
     kmer_presence_mtx: np.ndarray,
-    target_keys: List[str],
+    target_vars: List[str],
     num_kmers: int = 100,
     verbose: bool = False,
     preds_suffix: str = "_predictions",
@@ -528,7 +541,7 @@ def rnacomplete_metrics_sdata_table(
         SeqData object with observed and predicted scores in columns of seqs_annot
     kmer_presence_mtx : np.ndarray
        A binary matrix of k-mers x samples. A 1 in entry (i, j) indicates that sequence j contains k-mer i.
-    target_keys : List[str]
+    target_vars : List[str]
         List of target keys to compute metrics for
     num_kmers : int, optional
         Number of k-mers to sample to compute metrics, by default 100. For large sets of k-mers this can take long
@@ -542,8 +555,8 @@ def rnacomplete_metrics_sdata_table(
     pd.DataFrame
         A table of RNAcomplete metrics for each target key
     """
-    if isinstance(target_keys, str):
-        target_keys = [target_keys]
+    if isinstance(target_vars, str):
+        target_vars = [target_vars]
     spearman_summary = pd.DataFrame()
     pearson_summary = pd.DataFrame()
     if num_kmers is not None:
@@ -552,22 +565,22 @@ def rnacomplete_metrics_sdata_table(
     valid_kmers = np.where(np.sum(kmer_presence_mtx, axis=1) > 155)[0]
     kmer_presence_mtx = kmer_presence_mtx[valid_kmers, :]
     print(kmer_presence_mtx.shape)
-    for i, target_key in tqdm(
-        enumerate(target_keys), desc="Evaluating probes", total=len(target_keys)
+    for i, target_var in tqdm(
+        enumerate(target_vars), desc="Evaluating probes", total=len(target_vars)
     ):
         rs, rhos = rnacomplete_metrics_sdata_plot(
             sdata,
             kmer_presence_mtx,
-            target_key=target_key,
+            target_var=target_var,
             return_cors=True,
             verbose=verbose,
             preds_suffix=preds_suffix,
             **kwargs,
         )
         pearson_summary = pd.concat(
-            [pearson_summary, pd.DataFrame(rs, index=[target_key])], axis=0
+            [pearson_summary, pd.DataFrame(rs, index=[target_var])], axis=0
         )
         spearman_summary = pd.concat(
-            [spearman_summary, pd.DataFrame(rhos, index=[target_key])], axis=0
+            [spearman_summary, pd.DataFrame(rhos, index=[target_var])], axis=0
         )
     return pearson_summary, spearman_summary

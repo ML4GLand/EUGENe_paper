@@ -27,7 +27,7 @@ from ray13_helpers import rnacomplete_metrics_sdata_table
 
 # Kipoi external imports
 sys.path.append("/cellar/users/aklie/projects/ML4GLand/external/")
-from kipoi_ext import get_model_names, get_model
+import kipoi
 
 # For changable illustrator text
 import matplotlib
@@ -73,7 +73,7 @@ target_cols_w_ids = target_cols[cols_w_ids]
 ids_w_target_cols = pd.Index([id.split("(")[0].rstrip() for id in target_cols_w_ids.map(id_mp)])
 
 # Get the kipoi models names
-db_model_names = eu.external.kipoi.get_model_names("DeepBind/Homo_sapiens/RBP/D")
+db_model_names = kipoi.get_model_names("DeepBind/Homo_sapiens/RBP/D")
 
 # Get predictions with each model and store them in sdata
 target_cols_w_model = []
@@ -84,13 +84,13 @@ for i, (protein_id , motif_id) in tqdm(enumerate(zip(ids_w_target_cols, target_c
         print("No model found for protein: ", protein_id)
         continue
     try:
-        model = eu.external.kipoi.get_model(db_model_name.values[0])
+        model = kipoi.get_model(db_model_name.values[0])
         sdata_test[f"{motif_id}_predictions_kipoi"] = xr.DataArray(model(sdata_test["ohe_seq"].values.transpose(0,2,1)).cpu().numpy(), dims=["_sequence"])
         target_cols_w_model.append(motif_id)
     except:
         print("Failed to load model")
 
-sd.to_zarr(sdata_test, os.path.join(settings.output_dir, "norm_test_predictions_kipoi.zarr"), load_first=True, mode="w")
+sd.to_zarr(sdata_test, os.path.join(settings.output_dir, "norm_test_predictions_kipoi.zarr"), mode="w")
 
 ################
 # Saving results
