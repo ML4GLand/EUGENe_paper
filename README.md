@@ -10,7 +10,7 @@ Each directory within this repository is broken up into the three use cases (sec
 You can install the version of EUGENe used for the preprint with `pip`
 
 ```bash
-pip install eugene-tools==0.1.1
+pip install eugene-tools==0.1.2
 ```
 
 # Datasets
