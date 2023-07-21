@@ -14,7 +14,7 @@ pip install eugene-tools==0.1.2
 ```
 
 # Datasets
-You can find the raw and processed data for running the code and generating results at the following Zenodo link: https://zenodo.org/deposit/7140083#.
+You can find the raw and processed data for running the code and generating results at the following Zenodo link: [https://zenodo.org/deposit/7140083#.](https://doi.org/10.5281/zenodo.7140082)
 
 ## Subdirectories
 
