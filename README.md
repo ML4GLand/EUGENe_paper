@@ -1,5 +1,5 @@
-# Welcome to the EUGENe Paper Repo
-This repository contains the code used to generate the results presented in the manuscript "EUGENe: A Python toolkit for predictive analyses of regulatory sequences."
+# Welcome to the EUGENe Paper Repo!
+This repository contains the code used to generate the results presented in the manuscript "EUGENe: A Python toolkit for predictive analyses of regulatory sequences." You can find the EUGENe documentation pages [here](https://eugene-tools.readthedocs.io/en/latest/index.html) and the EUGENe GitHub [here](https://github.com/cartercompbio/EUGENe).
 
 Each directory within this repository is broken up into the three use cases (section titles in *italics*) presented in the above preprint:
 1. `jores21` -- *STARR-seq plant promoter activity prediction*
@@ -14,11 +14,11 @@ pip install eugene-tools==0.1.1
 ```
 
 # Datasets
-You can find the raw and processed data for running the code and generating results at the following Zenodo link: https://zenodo.org/deposit/7140083#.
+You can find the raw and processed data for running the code and generating results at the following Zenodo link: https://doi.org/10.5281/zenodo.7140082.
 
 ## Subdirectories
 
-## `configs`
+## `configs/`
 These contain `.yaml` files used for training models in each use case (when applicable).
 
 ## `notebooks`
@@ -36,5 +36,5 @@ There is also the `plotting.ipynb` notebook in the `training_mem` folder where w
 
 **Note**: If you want to compare the DeepBind models to Kipoi's submitted DeepBind models, you will need to install Kipoi: https://github.com/kipoi/kipoi
 
-## `scripts`
+## `scripts/`
 These contain Python scripts for when you have to submit a job to a cluster or run it on your local machine behind a screen because it will take too long otherwise. These are organized in a similar manner to the `notebooks` for each use case.
