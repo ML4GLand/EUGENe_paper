@@ -1,9 +1,20 @@
-data
+data/
+memray/
+figures/
 logs/
 output/
 archive/
 zenodo/
+figures/
 *.DS_Store
+*.out
+*.err
+*.html
+*.bin
+*.tmp
+temp/
+wandb/
+checkpoints/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

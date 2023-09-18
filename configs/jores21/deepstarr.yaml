@@ -1,0 +1,15 @@
+module: SequenceModule
+model:
+  model_name: DeepSTARR_Jores21
+  arch_name: DeepSTARR
+  arch:
+    input_len: 170
+    output_dim: 1
+task: regression
+loss_fxn: mse
+optimizer: adam
+optimizer_lr: 0.001
+scheduler: reduce_lr_on_plateau
+scheduler_monitor: val_loss_epoch
+scheduler_kwargs:
+  patience: 2
