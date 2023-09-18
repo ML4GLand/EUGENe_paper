@@ -14,11 +14,7 @@ pip install eugene-tools==0.1.2
 ```
 
 # Datasets
-<<<<<<< HEAD
-You can find the raw and processed data for running the code and generating results at the following Zenodo link: https://doi.org/10.5281/zenodo.7140082.
-=======
 You can find the raw and processed data for running the code and generating results at the following Zenodo link: [https://zenodo.org/deposit/7140083#.](https://doi.org/10.5281/zenodo.7140082)
->>>>>>> fabca9681e625642ce880bea1896efdd8afc8e63
 
 ## Subdirectories
 
@@ -40,9 +36,5 @@ There is also the `plotting.ipynb` notebook in the `training_mem` folder where w
 
 **Note**: If you want to compare the DeepBind models to Kipoi's submitted DeepBind models, you will need to install Kipoi: https://github.com/kipoi/kipoi
 
-<<<<<<< HEAD
-## `scripts/`
-=======
 ## `scripts`
->>>>>>> fabca9681e625642ce880bea1896efdd8afc8e63
 These contain Python scripts for when you have to submit a job to a cluster or run it on your local machine behind a screen because it will take too long otherwise. These are organized in a similar manner to the `notebooks` for each use case.
